@@ -890,6 +890,18 @@ public class ConnectivityManagerFacade extends RpcReceiver {
         return mManager.getActiveLinkProperties();
     }
 
+    @Rpc(description = "Returns all IP addresses of the active link")
+    public List<InetAddress> connectivityGetAllAddressesOfActiveLink() {
+        LinkProperties linkProp = mManager.getActiveLinkProperties();
+        return linkProp.getAllAddresses();
+    }
+
+    @Rpc(description = "Check if active link has default IPv6 route")
+    public boolean connectivityHasIPv6DefaultRoute() {
+        LinkProperties linkProp = mManager.getActiveLinkProperties();
+        return linkProp.hasIPv6DefaultRoute();
+    }
+
     @Rpc(description = "Factory reset of network policies")
     public void connectivityFactoryResetNetworkPolicies(String subscriberId) {
         mNetPolicyManager.factoryReset(subscriberId);
@@ -920,10 +932,15 @@ public class ConnectivityManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Get network stats - received bytes for device")
     public long connectivityGetRxBytesForDevice(
-          String subscriberId, Long startTime, Long endTime)
-          throws SecurityException, RemoteException {
+        @RpcParameter(name = "subscriberId") String subscriberId,
+        @RpcParameter(name = "startTime") Long startTime,
+        @RpcParameter(name = "endTime") Long endTime,
+        @RpcParameter(name = "connType") @RpcOptional Integer connType)
+        throws SecurityException, RemoteException {
+        if(connType == null)
+            connType = ConnectivityManager.TYPE_MOBILE;
         Bucket bucket = mNetStatsManager.querySummaryForDevice(
-              ConnectivityManager.TYPE_MOBILE, subscriberId, startTime, endTime);
+              connType, subscriberId, startTime, endTime);
         return bucket.getRxBytes();
     }
 
