@@ -582,6 +582,24 @@ public class TelephonyManagerFacade extends RpcReceiver {
         return mTelephonyManager.getCellLocation();
     }
 
+    /**
+     *  Returns carrier id of the current subscription.
+     * @return Carrier id of the current subscription.
+     */
+    @Rpc(description = "Returns the numeric CarrierId for current subscription")
+    public int telephonyGetSubscriptionCarrierId() {
+        return mTelephonyManager.getAndroidCarrierIdForSubscription();
+    }
+
+    /**
+     *  Returns carrier name of the current subscription.
+     * @return Carrier name of the current subscription
+     */
+    @Rpc(description = "Returns Carrier Name for current subscription")
+    public CharSequence telephonyGetSubscriptionCarrierName() {
+        return mTelephonyManager.getAndroidCarrierNameForSubscription();
+    }
+
     @Rpc(description = "Returns the numeric name (MCC+MNC) of registered operator." +
                        "for default subscription ID")
     public String telephonyGetNetworkOperator() {
@@ -733,6 +751,30 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public String telephonyGetSimSerialNumberForSubscription(
                   @RpcParameter(name = "subId") Integer subId) {
         return mTelephonyManager.getSimSerialNumber(subId);
+    }
+
+    /**
+     * Set SIM card power state.
+     *
+     * @param state  State of SIM (0: power down, 1: power up, 2: pass through)
+     **/
+    @Rpc(description = "Set the SIM power state of the SIM card for default slot ID.")
+    public void telephonySetSimPowerState(
+                  @RpcParameter(name = "state") Integer state) {
+        mTelephonyManager.setSimPowerState(state);
+    }
+
+    /**
+     * Set SIM card power state.
+     *
+     * @param slotId SIM slot id
+     * @param state  State of SIM (0: power down, 1: power up, 2: pass through)
+     **/
+    @Rpc(description = "Set the SIM power state for SIM slot slotId.")
+    public void telephonySetSimStateForSlotId(
+                  @RpcParameter(name = "slotId") Integer slotId,
+                  @RpcParameter(name = "state") Integer state) {
+        mTelephonyManager.setSimPowerStateForSlot(slotId, state);
     }
 
     @Rpc(description = "Returns the state of the SIM card for default slot ID.")
