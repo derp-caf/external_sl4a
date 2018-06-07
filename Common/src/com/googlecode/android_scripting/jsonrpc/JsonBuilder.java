@@ -84,6 +84,7 @@ import com.android.internal.net.LegacyVpnInfo;
 import com.googlecode.android_scripting.ConvertUtils;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.event.Event;
+import com.googlecode.android_scripting.facade.DataUsageController.DataUsageInfo;
 import com.googlecode.android_scripting.facade.telephony.InCallServiceImpl;
 import com.googlecode.android_scripting.facade.telephony.TelephonyConstants;
 import com.googlecode.android_scripting.facade.telephony.TelephonyUtils;
@@ -244,6 +245,9 @@ public class JsonBuilder {
         }
         if (data instanceof SubscriptionInfo) {
             return buildSubscriptionInfoRecord((SubscriptionInfo) data);
+        }
+        if (data instanceof DataUsageInfo) {
+            return buildDataUsageInfo((DataUsageInfo) data);
         }
         if (data instanceof DhcpInfo) {
             return buildDhcpInfo((DhcpInfo) data);
@@ -852,6 +856,28 @@ public class JsonBuilder {
         url.put("Port", data.getPort());
         url.put("Protocol", data.getProtocol());
         return url;
+    }
+
+    /**
+     * Builds a json representation of a {@link DataUsageInfo}.
+     * @param data The DataUsageInfo convert to JSON.
+     * @return A JSONObject representation of a {@link DataUsageInfo}.
+     * @throws JSONException
+     */
+    private static JSONObject buildDataUsageInfo(@NonNull DataUsageInfo data)
+            throws JSONException {
+        JSONObject usage = new JSONObject();
+        usage.put("SubscriberId", data.subscriberId);
+        usage.put("Period", data.period);
+        usage.put("StartEpochMilli", data.startEpochMilli);
+        usage.put("EndEpochMilli", data.endEpochMilli);
+        usage.put("CycleStart", data.cycleStart);
+        usage.put("CycleEnd", data.cycleEnd);
+        usage.put("LimitLevel", data.limitLevel);
+        usage.put("WarningLevel", data.warningLevel);
+        usage.put("UsageLevel", data.usageLevel);
+        usage.put("Uid", data.uId);
+        return usage;
     }
 
     /**
