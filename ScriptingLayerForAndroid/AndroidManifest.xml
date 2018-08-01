@@ -20,10 +20,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.googlecode.android_scripting"
     android:sharedUserId="android.uid.system">
-    <uses-permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
-        android:protectionLevel="signature" />
-    <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
-        android:protectionLevel="signature" />
+    <uses-permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE" />
+    <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -197,6 +195,9 @@
             <intent-filter>
                 <action android:name="android.telecom.InCallService"/>
             </intent-filter>
+            <meta-data android:name="android.telecom.IN_CALL_SERVICE_UI" android:value="true" />
+            <meta-data android:name="android.telecom.INCLUDE_EXTERNAL_CALLS" android:value="true" />
+            <meta-data android:name="android.telecom.INCLUDE_SELF_MANAGED_CALLS" android:value="true" />
         </service>
         <service android:name=".service.FacadeService" android:enabled="true" android:exported="true" >
             <intent-filter>
@@ -224,7 +225,7 @@
                   android:grantUriPermissions="true"
                   android:exported="true" />
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="com.googlecode.android_scripting.provider.telephonytestprovider"
             android:grantUriPermissions="true"
             android:exported="false">
