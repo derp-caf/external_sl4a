@@ -247,6 +247,16 @@ public class WifiManagerFacade extends RpcReceiver {
             msg.putInt("NumClients", numClients);
             mEventFacade.postEvent(mEventStr + "OnNumClientsChanged", msg);
         }
+
+        @Override
+        public void onStaDisconnected(String Macaddr, int numClients) {
+          // TODO (b/129498568) Implement as necessary
+        }
+
+        @Override
+        public void onStaConnected(String Macaddr,int numClients) {
+          // TODO (b/129498568) Implement as necessary
+        }
     };
 
     private WifiLock mLock = null;
