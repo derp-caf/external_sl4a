@@ -36,6 +36,7 @@ import android.net.NetworkSpecifier;
 import android.net.Uri;
 import android.net.wifi.EasyConnectStatusCallback;
 import android.net.wifi.ScanResult;
+import android.net.wifi.SoftApInfo;
 import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiClient;
 import android.net.wifi.WifiConfiguration;
@@ -57,6 +58,7 @@ import android.net.wifi.hotspot2.PasspointConfiguration;
 import android.net.wifi.hotspot2.ProvisioningCallback;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerExecutor;
 import android.os.HandlerThread;
 import android.os.PatternMatcher;
 import android.provider.Settings.Global;
@@ -248,6 +250,11 @@ public class WifiManagerFacade extends RpcReceiver {
             Bundle msg = new Bundle();
             msg.putInt("NumClients", clients.size());
             mEventFacade.postEvent(mEventStr + "OnNumClientsChanged", msg);
+        }
+
+        @Override
+        public void onInfoChanged(SoftApInfo softApInfo) {
+            mEventFacade.postEvent(mEventStr + "OnInfoChanged", softApInfo);
         }
 
         @Override
@@ -557,6 +564,9 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has("macRand")) {
             config.macRandomizationSetting = j.getInt("macRand");
         }
+        if (j.has("carrierId")) {
+            config.carrierId = j.getInt("carrierId");
+        }
         return config;
     }
 
@@ -651,6 +661,9 @@ public class WifiManagerFacade extends RpcReceiver {
             }
             config.roamingConsortiumIds = rIds;
         }
+        if (j.has("carrierId")) {
+            config.carrierId = j.getInt("carrierId");
+        }
         config.enterpriseConfig = genWifiEnterpriseConfig(j);
         return config;
     }
@@ -721,6 +734,9 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has("priority")) {
             builder = builder.setPriority(j.getInt("priority"));
         }
+        if (j.has("carrierId")) {
+            builder.setCarrierId(j.getInt("carrierId"));
+        }
         if (j.has("profile")) {
             builder = builder.setPasspointConfig(genWifiPasspointConfig(j));
         } else {
@@ -754,6 +770,7 @@ public class WifiManagerFacade extends RpcReceiver {
                     builder = builder.setWpa3EnterpriseConfig(genWifiEnterpriseConfig(j));
                 }
             }
+
         }
 
         return builder.build();
@@ -1074,7 +1091,7 @@ public class WifiManagerFacade extends RpcReceiver {
                 osuServiceDescription = config.getString("description");
             }
             Map<String, String> osuFriendlyNames = new HashMap<>();
-            osuFriendlyNames.put("en", osuFriendlyName);
+            osuFriendlyNames.put("eng", osuFriendlyName);
             return new OsuProvider(osuSsid, osuFriendlyNames, osuServiceDescription,
                     osuServerUri, null, osuMethodList, null);
         } catch (JSONException e) {
@@ -1396,7 +1413,7 @@ public class WifiManagerFacade extends RpcReceiver {
         SoftApCallbackImp softApCallback = new SoftApCallbackImp(mEventFacade);
         mSoftapCallbacks.put(softApCallback.mId, softApCallback);
         mWifi.registerSoftApCallback(softApCallback,
-                new Handler(mCallbackHandlerThread.getLooper()));
+                new HandlerExecutor(new Handler(mCallbackHandlerThread.getLooper())));
         return softApCallback.mId;
     }
 
