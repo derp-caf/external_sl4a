@@ -50,7 +50,6 @@ import android.net.wifi.WifiManager.NetworkRequestUserSelectionCallback;
 import android.net.wifi.WifiManager.WifiLock;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.net.wifi.WifiNetworkSuggestion;
-import android.net.wifi.WifiSsid;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.hotspot2.ConfigParser;
 import android.net.wifi.hotspot2.OsuProvider;
@@ -87,7 +86,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -340,7 +338,7 @@ public class WifiManagerFacade extends RpcReceiver {
         }
     }
 
-    class WifiScanResultsReceiver implements WifiManager.ScanResultsListener{
+    class WifiScanResultsReceiver extends WifiManager.ScanResultsCallback {
         private final EventFacade mEventFacade;
 
         WifiScanResultsReceiver(EventFacade eventFacade) {
@@ -352,7 +350,7 @@ public class WifiManagerFacade extends RpcReceiver {
             Log.d("Wifi connection scan finished, results available.");
             mResults.putLong("Timestamp", System.currentTimeMillis() / 1000);
             mEventFacade.postEvent(mEventType + "ScanResultsCallbackOnSuccess", mResults);
-            mWifi.removeScanResultsListener(mWifiScanResultsReceiver);
+            mWifi.unregisterScanResultsCallback(mWifiScanResultsReceiver);
         }
     }
 
@@ -1071,8 +1069,7 @@ public class WifiManagerFacade extends RpcReceiver {
                 Log.e("missing osuSSID from the config");
                 return null;
             }
-            WifiSsid osuSsid = WifiSsid.createFromByteArray(
-                    config.getString("osuSSID").getBytes(StandardCharsets.UTF_8));
+            String osuSsid = config.getString("osuSSID");
 
             if (!config.has("osuUri")) {
                 Log.e("missing osuUri from the config");
@@ -1448,7 +1445,7 @@ public class WifiManagerFacade extends RpcReceiver {
     @Rpc(description = "Starts a scan for Wifi access points with scanResultCallback.",
             returns = "True if the scan was initiated successfully.")
     public Boolean wifiStartScanWithListener() {
-        mWifi.addScanResultsListener(mService.getMainExecutor(), mWifiScanResultsReceiver);
+        mWifi.registerScanResultsCallback(mService.getMainExecutor(), mWifiScanResultsReceiver);
         return mWifi.startScan();
     }
 
