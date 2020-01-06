@@ -18,6 +18,8 @@ package com.googlecode.android_scripting.facade.wifi;
 
 import static android.net.NetworkCapabilities.TRANSPORT_WIFI;
 
+import static com.googlecode.android_scripting.jsonrpc.JsonBuilder.build;
+
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -1282,9 +1284,20 @@ public class WifiManagerFacade extends RpcReceiver {
         return mWifi.isDeviceToDeviceRttSupported();
     }
 
-    @Rpc(description = "Check if the chipset supports dual frequency band (2.4 GHz and 5 GHz).")
-    public Boolean wifiIsDualBandSupported() {
-        return mWifi.isDualBandSupported();
+    /**
+     * @return true if chipset supports 5GHz band and false otherwise.
+     */
+    @Rpc(description = "Check if the chipset supports 5GHz frequency band.")
+    public Boolean is5GhzBandSupported() {
+        return mWifi.is5GHzBandSupported();
+    }
+
+    /**
+     * @return true if chipset supports 6GHz band and false otherwise.
+     */
+    @Rpc(description = "Check if the chipset supports 6GHz frequency band.")
+    public Boolean is6GhzBandSupported() {
+        return mWifi.is6GHzBandSupported();
     }
 
     @Rpc(description = "Check if this adapter supports advanced power/performance counters.")
@@ -1771,11 +1784,63 @@ public class WifiManagerFacade extends RpcReceiver {
         }
 
         @Override
-        public void onFailure(int code) {
+        public void onFailure(int code, String ssid, SparseArray<int[]> channelList,
+                int[] bandList) {
             Bundle msg = new Bundle();
             msg.putString("Type", "onFailure");
             msg.putInt("Status", code);
             Log.d("Posting event: onFailure");
+            if (ssid != null) {
+                Log.d("onFailure SSID: " + ssid);
+                msg.putString("onFailureSsid", ssid);
+            } else {
+                msg.putString("onFailureSsid", "");
+            }
+            if (channelList != null) {
+                Log.d("onFailure list of tried channels: " + channelList);
+                int key;
+                int index = 0;
+                JSONObject formattedChannelList = new JSONObject();
+
+                // Build a JSON array of classes, with an array of channels for each class.
+                do {
+                    try {
+                        key = channelList.keyAt(index);
+                    } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+                        break;
+                    }
+                    try {
+                        JSONArray channelsInClassArray = new JSONArray();
+
+                        int[] output = channelList.get(key);
+                        for (int i = 0; i < output.length; i++) {
+                            channelsInClassArray.put(output[i]);
+                        }
+                        formattedChannelList.put(Integer.toString(key),
+                                build(channelsInClassArray));
+                    } catch (org.json.JSONException e) {
+                        msg.putString("onFailureChannelList", "");
+                        break;
+                    }
+                    index++;
+                } while (true);
+
+                msg.putString("onFailureChannelList", formattedChannelList.toString());
+            } else {
+                msg.putString("onFailureChannelList", "");
+            }
+
+            if (bandList != null) {
+                // Build a JSON array of bands represented as operating classes
+                Log.d("onFailure list of supported bands: " + bandList);
+                JSONArray formattedBandList = new JSONArray();
+                for (int i = 0; i < bandList.length; i++) {
+                    formattedBandList.put(bandList[i]);
+                }
+                msg.putString("onFailureBandList", formattedBandList.toString());
+            } else {
+                msg.putString("onFailureBandList", "");
+            }
             mEventFacade.postEvent(EASY_CONNECT_CALLBACK_TAG, msg);
         }
 
