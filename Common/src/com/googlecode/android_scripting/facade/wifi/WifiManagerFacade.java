@@ -37,7 +37,6 @@ import android.net.Uri;
 import android.net.wifi.EasyConnectStatusCallback;
 import android.net.wifi.ScanResult;
 import android.net.wifi.SoftApInfo;
-import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiClient;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
@@ -60,6 +59,7 @@ import android.os.Handler;
 import android.os.HandlerExecutor;
 import android.os.HandlerThread;
 import android.os.PatternMatcher;
+import android.os.connectivity.WifiActivityEnergyInfo;
 import android.provider.Settings.Global;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
@@ -103,6 +103,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * WifiManager functions.
@@ -110,9 +113,11 @@ import java.util.Map;
 // TODO: make methods handle various wifi states properly
 // e.g. wifi connection result will be null when flight mode is on
 public class WifiManagerFacade extends RpcReceiver {
-    private final static String mEventType = "WifiManager";
+    private static final String mEventType = "WifiManager";
     // MIME type for passpoint config.
-    private final static String TYPE_WIFICONFIG = "application/x-wifi-config";
+    private static final String TYPE_WIFICONFIG = "application/x-wifi-config";
+    private static final int TIMEOUT_MILLIS = 5000;
+
     private final Service mService;
     private final WifiManager mWifi;
     private final ConnectivityManager mCm;
@@ -968,7 +973,7 @@ public class WifiManagerFacade extends RpcReceiver {
         Log.d("Did not find a matching object in wifiManager.");
         return null;
     }
-   /**
+    /**
      * Generate a Passpoint configuration from JSON config.
      * @param config JSON config containing base64 encoded Passpoint profile
      */
@@ -987,7 +992,7 @@ public class WifiManagerFacade extends RpcReceiver {
                 profileStr.getBytes());
     }
 
-   /**
+    /**
      * Add or update a Passpoint configuration.
      * @param config base64 encoded message containing Passpoint profile
      * @throws JSONException
@@ -1090,7 +1095,7 @@ public class WifiManagerFacade extends RpcReceiver {
             Map<String, String> osuFriendlyNames = new HashMap<>();
             osuFriendlyNames.put("eng", osuFriendlyName);
             return new OsuProvider(osuSsid, osuFriendlyNames, osuServiceDescription,
-                    osuServerUri, null, osuMethodList, null);
+                    osuServerUri, null, osuMethodList);
         } catch (JSONException e) {
             Log.e("JSON Parsing error: " + e);
             return null;
@@ -1186,7 +1191,30 @@ public class WifiManagerFacade extends RpcReceiver {
 
     @Rpc(description = "Returns wifi activity and energy usage info.")
     public WifiActivityEnergyInfo wifiGetControllerActivityEnergyInfo() {
-        return mWifi.getControllerActivityEnergyInfo();
+        WifiActivityEnergyInfo[] mutable = {null};
+        CountDownLatch latch = new CountDownLatch(1);
+        mWifi.getWifiActivityEnergyInfoAsync(new Executor() {
+            @Override
+            public void execute(Runnable runnable) {
+                runnable.run();
+            }
+        }, info -> {
+            mutable[0] = info;
+            latch.countDown();
+        });
+        boolean completedSuccessfully = false;
+        try {
+            completedSuccessfully = latch.await(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Log.w("Interrupted while awaiting for WifiManager.getWifiActivityEnergyInfoAsync()");
+        }
+        if (completedSuccessfully) {
+            return mutable[0];
+        } else {
+            Log.w("WifiManager.getWifiActivityEnergyInfoAsync() timed out after "
+                    + TIMEOUT_MILLIS + " milliseconds");
+            return null;
+        }
     }
 
     @Rpc(description = "Get the country code used by WiFi.")

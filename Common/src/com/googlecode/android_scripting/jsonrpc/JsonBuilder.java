@@ -43,7 +43,6 @@ import android.net.Uri;
 import android.net.wifi.RttManager.RttCapabilities;
 import android.net.wifi.ScanResult;
 import android.net.wifi.SoftApInfo;
-import android.net.wifi.WifiActivityEnergyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiEnterpriseConfig;
 import android.net.wifi.WifiInfo;
@@ -55,6 +54,7 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.os.connectivity.WifiActivityEnergyInfo;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.PhoneAccount;
@@ -1033,13 +1033,12 @@ public class JsonBuilder {
     private static JSONObject buildWifiActivityEnergyInfo(
             WifiActivityEnergyInfo data) throws JSONException {
         JSONObject result = new JSONObject();
-        result.put("ControllerEnergyUsed", data.getControllerEnergyUsed());
-        result.put("ControllerIdleTimeMillis",
-                data.getControllerIdleTimeMillis());
-        result.put("ControllerRxTimeMillis", data.getControllerRxTimeMillis());
-        result.put("ControllerTxTimeMillis", data.getControllerTxTimeMillis());
+        result.put("ControllerEnergyUsed", data.getControllerEnergyUsedMicroJoules());
+        result.put("ControllerIdleTimeMillis", data.getControllerIdleDurationMillis());
+        result.put("ControllerRxTimeMillis", data.getControllerRxDurationMillis());
+        result.put("ControllerTxTimeMillis", data.getControllerTxDurationMillis());
         result.put("StackState", data.getStackState());
-        result.put("TimeStamp", data.getTimeStamp());
+        result.put("TimeStamp", data.getTimeSinceBootMillis());
         return result;
     }
 
@@ -1420,62 +1419,62 @@ public class JsonBuilder {
     public static JSONObject buildServiceState(ServiceState ss) throws JSONException {
         JSONObject info = new JSONObject();
 
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_REG_STATE,
-            TelephonyUtils.getNetworkStateString(ss.getVoiceRegState()));
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_NETWORK_TYPE,
-            TelephonyUtils.getNetworkTypeString(ss.getVoiceNetworkType()));
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_REG_STATE,
-            TelephonyUtils.getNetworkStateString(ss.getDataRegState()));
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_NETWORK_TYPE,
-            TelephonyUtils.getNetworkTypeString(ss.getDataNetworkType()));
-    info.put(TelephonyConstants.ServiceStateContainer.OPERATOR_NAME, ss.getOperatorAlphaLong());
-    info.put(TelephonyConstants.ServiceStateContainer.OPERATOR_ID, ss.getOperatorNumeric());
-    info.put(TelephonyConstants.ServiceStateContainer.IS_MANUAL_NW_SELECTION,
-            ss.getIsManualSelection());
-    info.put(TelephonyConstants.ServiceStateContainer.ROAMING, ss.getRoaming());
-    info.put(TelephonyConstants.ServiceStateContainer.IS_EMERGENCY_ONLY, ss.isEmergencyOnly());
-    info.put(TelephonyConstants.ServiceStateContainer.NETWORK_ID, ss.getCdmaNetworkId());
-    info.put(TelephonyConstants.ServiceStateContainer.SYSTEM_ID, ss.getCdmaSystemId());
-    info.put(TelephonyConstants.ServiceStateContainer.SERVICE_STATE,
-            TelephonyUtils.getNetworkStateString(ss.getState()));
-    info.put(TelephonyConstants.ServiceStateContainer.CHANNEL_NUMBER, ss.getChannelNumber());
-    info.put(TelephonyConstants.ServiceStateContainer.CELL_BANDWIDTHS,
-            ss.getCellBandwidths() != null
-                    ? new JSONArray(ss.getCellBandwidths())
-                    : JSONObject.NULL);
-    info.put(TelephonyConstants.ServiceStateContainer.DUPLEX_MODE, ss.getDuplexMode());
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_ROAMING_TYPE,
-            ss.getVoiceRoamingType());
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_ROAMING_TYPE,
-            ss.getDataRoamingType());
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_OPERATOR_ALPHA_LONG,
-            ss.getVoiceOperatorAlphaLong());
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_OPERATOR_ALPHA_SHORT,
-            ss.getVoiceOperatorAlphaShort());
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_OPERATOR_NUMERIC,
-            ss.getVoiceOperatorNumeric());
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_OPERATOR_ALPHA_LONG,
-            ss.getDataOperatorAlphaLong());
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_OPERATOR_ALPHA_SHORT,
-            ss.getDataOperatorAlphaShort());
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_OPERATOR_NUMERIC,
-            ss.getDataOperatorNumeric());
-    info.put(TelephonyConstants.ServiceStateContainer.VOICE_RADIO_TECHNOLOGY,
-            ss.getRilVoiceRadioTechnology());
-    info.put(TelephonyConstants.ServiceStateContainer.DATA_RADIO_TECHNOLOGY,
-            ss.getRilDataRadioTechnology());
-    info.put(TelephonyConstants.ServiceStateContainer.CSS_INDICATOR, ss.getCssIndicator());
-    info.put(TelephonyConstants.ServiceStateContainer.CDMA_ROAMING_INDICATOR,
-            ss.getCdmaRoamingIndicator());
-    info.put(TelephonyConstants.ServiceStateContainer.CDMA_DEFAULT_ROAMING_INDICATOR,
-            ss.getCdmaDefaultRoamingIndicator());
-    info.put(TelephonyConstants.ServiceStateContainer.IS_DATA_ROAMING_FROM_REGISTRATION,
-            ss.getDataRoamingFromRegistration());
-    info.put(TelephonyConstants.ServiceStateContainer.IS_USING_CARRIER_AGGREGATION,
-            ss.isUsingCarrierAggregation());
-    info.put(TelephonyConstants.ServiceStateContainer.LTE_EARFCN_RSRP_BOOST,
-            ss.getLteEarfcnRsrpBoost());
-    return info;
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_REG_STATE,
+                TelephonyUtils.getNetworkStateString(ss.getVoiceRegState()));
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_NETWORK_TYPE,
+                TelephonyUtils.getNetworkTypeString(ss.getVoiceNetworkType()));
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_REG_STATE,
+                TelephonyUtils.getNetworkStateString(ss.getDataRegState()));
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_NETWORK_TYPE,
+                TelephonyUtils.getNetworkTypeString(ss.getDataNetworkType()));
+        info.put(TelephonyConstants.ServiceStateContainer.OPERATOR_NAME, ss.getOperatorAlphaLong());
+        info.put(TelephonyConstants.ServiceStateContainer.OPERATOR_ID, ss.getOperatorNumeric());
+        info.put(TelephonyConstants.ServiceStateContainer.IS_MANUAL_NW_SELECTION,
+                ss.getIsManualSelection());
+        info.put(TelephonyConstants.ServiceStateContainer.ROAMING, ss.getRoaming());
+        info.put(TelephonyConstants.ServiceStateContainer.IS_EMERGENCY_ONLY, ss.isEmergencyOnly());
+        info.put(TelephonyConstants.ServiceStateContainer.NETWORK_ID, ss.getCdmaNetworkId());
+        info.put(TelephonyConstants.ServiceStateContainer.SYSTEM_ID, ss.getCdmaSystemId());
+        info.put(TelephonyConstants.ServiceStateContainer.SERVICE_STATE,
+                TelephonyUtils.getNetworkStateString(ss.getState()));
+        info.put(TelephonyConstants.ServiceStateContainer.CHANNEL_NUMBER, ss.getChannelNumber());
+        info.put(TelephonyConstants.ServiceStateContainer.CELL_BANDWIDTHS,
+                ss.getCellBandwidths() != null
+                        ? new JSONArray(ss.getCellBandwidths())
+                        : JSONObject.NULL);
+        info.put(TelephonyConstants.ServiceStateContainer.DUPLEX_MODE, ss.getDuplexMode());
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_ROAMING_TYPE,
+                ss.getVoiceRoamingType());
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_ROAMING_TYPE,
+                ss.getDataRoamingType());
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_OPERATOR_ALPHA_LONG,
+                ss.getOperatorAlphaLong());
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_OPERATOR_ALPHA_SHORT,
+                ss.getOperatorAlphaShort());
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_OPERATOR_NUMERIC,
+                ss.getOperatorNumeric());
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_OPERATOR_ALPHA_LONG,
+                ss.getOperatorAlphaLong());
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_OPERATOR_ALPHA_SHORT,
+                ss.getOperatorAlphaShort());
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_OPERATOR_NUMERIC,
+                ss.getOperatorNumeric());
+        info.put(TelephonyConstants.ServiceStateContainer.VOICE_RADIO_TECHNOLOGY,
+                ss.getRilVoiceRadioTechnology());
+        info.put(TelephonyConstants.ServiceStateContainer.DATA_RADIO_TECHNOLOGY,
+                ss.getRilDataRadioTechnology());
+        info.put(TelephonyConstants.ServiceStateContainer.CSS_INDICATOR, ss.getCssIndicator());
+        info.put(TelephonyConstants.ServiceStateContainer.CDMA_ROAMING_INDICATOR,
+                ss.getCdmaRoamingIndicator());
+        info.put(TelephonyConstants.ServiceStateContainer.CDMA_DEFAULT_ROAMING_INDICATOR,
+                ss.getCdmaDefaultRoamingIndicator());
+        info.put(TelephonyConstants.ServiceStateContainer.IS_DATA_ROAMING_FROM_REGISTRATION,
+                ss.getDataRoamingFromRegistration());
+        info.put(TelephonyConstants.ServiceStateContainer.IS_USING_CARRIER_AGGREGATION,
+                ss.isUsingCarrierAggregation());
+        info.put(TelephonyConstants.ServiceStateContainer.LTE_EARFCN_RSRP_BOOST,
+                ss.getLteEarfcnRsrpBoost());
+        return info;
     }
 
     private JsonBuilder() {
