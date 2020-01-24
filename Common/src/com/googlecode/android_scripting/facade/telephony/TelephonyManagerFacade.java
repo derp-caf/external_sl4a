@@ -135,6 +135,19 @@ public class TelephonyManagerFacade extends RpcReceiver {
         mTelephonyManager.factoryReset(subId);
     }
 
+    /**
+    * Reset TelephonyManager settings to factory default.
+    * @param subId the subriber id to be reset, use default id if not provided.
+    */
+    @Rpc(description = "Resets Telephony and IMS settings to factory default.")
+    public void telephonyResetSettings(
+            @RpcOptional @RpcParameter(name = "subId") Integer subId) {
+        if (subId == null) {
+            subId = SubscriptionManager.getDefaultVoiceSubscriptionId();
+        }
+        mTelephonyManager.createForSubscriptionId(subId).resetSettings();
+    }
+
     @Rpc(description = "Set network preference.")
     public boolean telephonySetPreferredNetworkTypes(
         @RpcParameter(name = "nwPreference") String nwPreference) {
@@ -737,6 +750,13 @@ public class TelephonyManagerFacade extends RpcReceiver {
     public String telephonyGetPhoneType() {
         return TelephonyUtils.getPhoneTypeString(
             mTelephonyManager.getPhoneType());
+    }
+
+    @Rpc(description = "Return if setAlwaysAllowMMSData is set correctly")
+    public boolean telephonySetAlwaysAllowMmsData(
+            @RpcParameter(name = "subId") Integer subId,
+            @RpcParameter(name = "alwaysAllow") Boolean alwaysAllow) {
+        return mTelephonyManager.createForSubscriptionId(subId).setAlwaysAllowMmsData(alwaysAllow);
     }
 
     @Rpc(description = "Returns preferred opportunistic data subscription Id")
