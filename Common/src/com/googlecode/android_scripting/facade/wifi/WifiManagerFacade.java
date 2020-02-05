@@ -742,6 +742,9 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has("carrierId")) {
             builder.setCarrierId(j.getInt("carrierId"));
         }
+        if (j.has("enableAutojoin")) {
+            builder.setIsInitialAutoJoinEnabled(j.getBoolean("enableAutojoin"));
+        }
         if (j.has("profile")) {
             builder = builder.setPasspointConfig(genWifiPasspointConfig(j));
         } else {
@@ -775,7 +778,6 @@ public class WifiManagerFacade extends RpcReceiver {
                     builder = builder.setWpa3EnterpriseConfig(genWifiEnterpriseConfig(j));
                 }
             }
-
         }
 
         return builder.build();
@@ -1902,5 +1904,23 @@ public class WifiManagerFacade extends RpcReceiver {
     public void stopEasyConnectSession() {
         // Stop Easy Connect
         mWifi.stopEasyConnectSession();
+    }
+
+    /**
+     * Enable/Disable auto join for target network
+     */
+    @Rpc(description = "Set network auto join enable/disable")
+    public void wifiEnableAutojoin(@RpcParameter(name = "netId") Integer netId,
+            @RpcParameter(name = "enableAutojoin") Boolean enableAutojoin) {
+        mWifi.allowAutojoin(netId, enableAutojoin);
+    }
+
+    /**
+     * Enable/Disable auto join for target Passpoint network
+     */
+    @Rpc(description = "Set passpoint network auto join enable/disable")
+    public void wifiEnableAutojoinPasspoint(@RpcParameter(name = "FQDN") String fqdn,
+            @RpcParameter(name = "enableAutojoin") Boolean enableAutojoin) {
+        mWifi.allowAutojoinPasspoint(fqdn, enableAutojoin);
     }
 }
