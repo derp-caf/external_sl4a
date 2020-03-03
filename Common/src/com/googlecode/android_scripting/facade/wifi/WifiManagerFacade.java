@@ -513,7 +513,7 @@ public class WifiManagerFacade extends RpcReceiver {
             if (j.has("security")) {
                 if (TextUtils.equals(j.getString("security"), "SAE")) {
                     config.allowedKeyManagement.set(KeyMgmt.SAE);
-                    config.requirePMF = true;
+                    config.requirePmf = true;
                 } else {
                     config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
                 }
@@ -528,7 +528,7 @@ public class WifiManagerFacade extends RpcReceiver {
             if (j.has("security")) {
                 if (TextUtils.equals(j.getString("security"), "OWE")) {
                     config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.OWE);
-                    config.requirePMF = true;
+                    config.requirePmf = true;
                 } else {
                     config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
                 }
@@ -643,7 +643,7 @@ public class WifiManagerFacade extends RpcReceiver {
         if (j.has("security")) {
             if (TextUtils.equals(j.getString("security"), "SUITE_B_192")) {
                 config.allowedKeyManagement.set(KeyMgmt.SUITE_B_192);
-                config.requirePMF = true;
+                config.requirePmf = true;
             }
         }
 
