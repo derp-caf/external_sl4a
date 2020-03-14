@@ -1497,7 +1497,7 @@ public class WifiManagerFacade extends RpcReceiver {
         }
 
         if (configJson.has("ShutdownTimeoutMillis")) {
-            configBuilder.setShutdownTimeoutMillis(configJson.getInt("ShutdownTimeoutMillis"));
+            configBuilder.setShutdownTimeoutMillis(configJson.getLong("ShutdownTimeoutMillis"));
         }
 
         if (configJson.has("AutoShutdownEnabled")) {
@@ -1505,7 +1505,7 @@ public class WifiManagerFacade extends RpcReceiver {
         }
 
         if (configJson.has("ClientControlByUserEnabled")) {
-            configBuilder.enableClientControlByUser(
+            configBuilder.setClientControlByUserEnabled(
                     configJson.getBoolean("ClientControlByUserEnabled"));
         }
 
@@ -1525,7 +1525,8 @@ public class WifiManagerFacade extends RpcReceiver {
             }
 
         }
-        configBuilder.setClientList(blockedClientList, allowedClientList);
+        configBuilder.setAllowedClientList(allowedClientList);
+        configBuilder.setBlockedClientList(blockedClientList);
         return configBuilder.build();
     }
 
