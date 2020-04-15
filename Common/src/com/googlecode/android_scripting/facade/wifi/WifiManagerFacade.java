@@ -275,16 +275,6 @@ public class WifiManagerFacade extends RpcReceiver {
             msg.putInt("BlockedReason", blockedReason);
             mEventFacade.postEvent(mEventStr + "OnBlockedClientConnecting", msg);
         }
-
-        @Override
-        public void onStaDisconnected(String Macaddr, int numClients) {
-          // TODO (b/129498568) Implement as necessary
-        }
-
-        @Override
-        public void onStaConnected(String Macaddr,int numClients) {
-          // TODO (b/129498568) Implement as necessary
-        }
     };
 
     private WifiLock mLock = null;
