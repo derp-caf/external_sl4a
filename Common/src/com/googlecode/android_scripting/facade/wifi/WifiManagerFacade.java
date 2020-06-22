@@ -252,8 +252,11 @@ public class WifiManagerFacade extends RpcReceiver {
 
         @Override
         public void onConnectedClientsChanged(List<WifiClient> clients) {
+            ArrayList<String> macAddresses = new ArrayList<>();
+            clients.forEach(x -> macAddresses.add(x.getMacAddress().toString()));
             Bundle msg = new Bundle();
             msg.putInt("NumClients", clients.size());
+            msg.putStringArrayList("MacAddresses", macAddresses);
             mEventFacade.postEvent(mEventStr + "OnNumClientsChanged", msg);
             mEventFacade.postEvent(mEventStr + "OnConnectedClientsChanged", clients);
         }
@@ -274,16 +277,6 @@ public class WifiManagerFacade extends RpcReceiver {
             msg.putString("WifiClient", client.getMacAddress().toString());
             msg.putInt("BlockedReason", blockedReason);
             mEventFacade.postEvent(mEventStr + "OnBlockedClientConnecting", msg);
-        }
-
-        @Override
-        public void onStaDisconnected(String Macaddr, int numClients) {
-          // TODO (b/129498568) Implement as necessary
-        }
-
-        @Override
-        public void onStaConnected(String Macaddr,int numClients) {
-          // TODO (b/129498568) Implement as necessary
         }
     };
 

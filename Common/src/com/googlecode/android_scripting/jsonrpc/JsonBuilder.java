@@ -772,6 +772,7 @@ public class JsonBuilder {
         }
         result.put("supplicant_state", build(supplicantState));
         result.put("is_5ghz", data.is5GHz());
+        result.put("is_6ghz", data.is6GHz());
         result.put("is_24ghz", data.is24GHz());
         return result;
     }
@@ -1013,6 +1014,7 @@ public class JsonBuilder {
         msg.put("mcc", data.getMcc());
         msg.put("mnc", data.getMnc());
         msg.put("carrierId", data.getCarrierId());
+        msg.put("isOpportunistic", data.isOpportunistic());
         return msg;
     }
 
